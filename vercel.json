@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npx expo export --platform web",
+  "outputDirectory": "dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ],
+  "env": {
+    "EXPO_PUBLIC_BACKEND_URL": "https://margdarshak08.onrender.com"
+  }
+}
