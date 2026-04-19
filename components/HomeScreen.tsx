@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, FlatList, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../store/authStore';
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8001';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || process.env.EXPO_PUBLIC_BACKEND_URL || 'https://margdarshak08.onrender.com';
 
 const CATEGORIES = [
   { key: 'stress', label: 'Stress & Anxiety', icon: '🧘' },
