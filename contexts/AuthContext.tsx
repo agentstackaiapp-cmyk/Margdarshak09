@@ -34,31 +34,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
   const checkAuth = async () => {
-    // CRITICAL: Skip auth check if returning from OAuth callback
-    // AuthCallback will handle authentication in that case
-    if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location.hash?.includes('session_id=')) {
-      setLoading(false);
-      return;
-    }
-
     try {
-      // Try to get stored session token (for mobile)
-      let sessionToken = null;
-      if (Platform.OS !== 'web') {
-        sessionToken = await AsyncStorage.getItem('session_token');
-      }
+      // Read stored session token on all platforms
+      const sessionToken = await AsyncStorage.getItem('session_token');
 
       const headers: any = {
         'Content-Type': 'application/json',
       };
 
-      // Add Authorization header for mobile
-      if (sessionToken && Platform.OS !== 'web') {
+      if (sessionToken) {
         headers['Authorization'] = `Bearer ${sessionToken}`;
       }
 
       const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
-        credentials: Platform.OS === 'web' ? 'include' : 'omit',
+        credentials: 'include',
         headers,
       });
 
