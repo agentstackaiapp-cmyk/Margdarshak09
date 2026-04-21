@@ -105,27 +105,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      // Get session token for mobile
-      let sessionToken = null;
-      if (Platform.OS !== 'web') {
-        sessionToken = await AsyncStorage.getItem('session_token');
-      }
-
+      const sessionToken = await AsyncStorage.getItem('session_token');
       const headers: any = {};
-      if (sessionToken && Platform.OS !== 'web') {
+      if (sessionToken) {
         headers['Authorization'] = `Bearer ${sessionToken}`;
       }
 
       await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
-        credentials: Platform.OS === 'web' ? 'include' : 'omit',
+        credentials: 'include',
         headers,
       });
 
-      // Clear stored token
-      if (Platform.OS !== 'web') {
-        await AsyncStorage.removeItem('session_token');
-      }
+      await AsyncStorage.removeItem('session_token');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
