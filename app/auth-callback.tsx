@@ -5,13 +5,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { colors } from '../utils/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://margdarshak08.onrender.com';
+
 export default function AuthCallback() {
   const router = useRouter();
-  const { setUser, checkAuth } = useAuth();
+  const { checkAuth } = useAuth();
   const hasProcessed = useRef(false);
 
   useEffect(() => {
-    // Prevent double processing in StrictMode
     if (hasProcessed.current) return;
     hasProcessed.current = true;
 
@@ -23,22 +24,32 @@ export default function AuthCallback() {
         }
         if (typeof window === 'undefined') return;
 
-        // Backend redirects to /#session_token=xxx after Google OAuth
-        const hash = window.location.hash;
-        const params = new URLSearchParams(hash.substring(1));
-        const sessionToken = params.get('session_token');
+        // Google redirects here with ?code=xxx after OAuth consent
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
 
-        if (!sessionToken) {
-          console.error('No session_token in URL hash');
+        if (!code) {
+          console.error('No code in URL query params');
           router.replace('/');
           return;
         }
 
-        // Store token and verify with backend
-        await AsyncStorage.setItem('session_token', sessionToken);
+        // Exchange code for session token via backend
+        const resp = await fetch(
+          `${BACKEND_URL}/api/auth/google/exchange?code=${encodeURIComponent(code)}`,
+          { credentials: 'include' }
+        );
+        if (!resp.ok) {
+          console.error('Token exchange failed', await resp.text());
+          router.replace('/');
+          return;
+        }
+
+        const { session_token } = await resp.json();
+        await AsyncStorage.setItem('session_token', session_token);
         await checkAuth();
 
-        // Clear hash from URL
+        // Clean up URL
         window.history.replaceState(null, '', window.location.pathname);
         router.replace('/');
       } catch (error) {
